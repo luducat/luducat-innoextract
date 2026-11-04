@@ -1,4 +1,11 @@
 
+innoextract 1.13.0-lc1 (unreleased)
+ - Forked from crazy-max/innoextract 1.13.0 as luducat-innoextract
+ - With --timestamps local, files now show the local time stored in the installer; dates in daylight saving time used to come out one hour later
+ - Added support for installers made with Inno Setup 6.6.0 development builds from late September to early October 2025, which use the 6.6.0 data ID with an older language entry layout
+ - Added unit tests for the setup header, language entries and local time conversion
+ - Bug reports now go to https://github.com/luducat/luducat-innoextract/issues
+
 innoextract 1.13.0 (2026-08-18)
  - Fixed printing SHA-256 checksums to use the stored SHA-256 digest instead of SHA-1 bytes
  - Fixed collision rename suffixes so component and language expressions containing path separators cannot create nested output paths

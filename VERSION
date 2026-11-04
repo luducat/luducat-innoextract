@@ -1,7 +1,7 @@
-innoextract dev
+innoextract 1.13.0-lc1
 
 Known working Inno Setup versions:
 Inno Setup 1.2.10 to 7.1.0
 
 Bug tracker:
-https://innoextract.constexpr.org/issues
+https://github.com/luducat/luducat-innoextract/issues

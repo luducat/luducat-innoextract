@@ -1,21 +1,32 @@
+# luducat-innoextract
 
-# innoextract - A tool to unpack installers created by Inno Setup
+luducat-innoextract unpacks installers made with [Inno Setup](https://jrsoftware.org/isinfo.php) without running them, so you do not need Windows or Wine for it. It reads installers from Inno Setup 1.2.10 up to 7.1, including GOG.com's game installers with their multi-part and GOG Galaxy layouts.
 
-[Inno Setup](https://jrsoftware.org/isinfo.php) is a tool to create installers for Microsoft Windows applications. innoextract allows to extract such installers under non-Windows systems without running the actual installer using wine. innoextract currently supports installers created by Inno Setup 1.2.10 to 7.1.0.
+This is a fork of innoextract, maintained by the [luducat](https://luducat.org) project. luducat uses it to unpack the DRM-free game installers you own, so it gets the fixes those installers need. The tool works the same way as upstream innoextract and is useful on its own.
 
-In addition to standard Inno Setup installers, innoextract also supports some modified Inno Setup variants including Martijn Laan's My Inno Setup Extensions 1.3.10 to 3.0.6.1 as well as GOG.com's Inno Setup-based game installers. innoextract is able to unpack Wadjet Eye Games installers (to play with AGS), Arx Fatalis patches (for use with Arx Libertatis) as well as various other Inno Setup executables.
+## What this fork changes
 
-innoextract is available under the ZLIB license - see the LICENSE file.
+Compared with crazy-max/innoextract 1.13.0:
 
-See the website for [Linux packages](https://constexpr.org/innoextract/#packages).
+* **Local file times.** Inno Setup stores file times as the local time of the machine that built the installer. With `--timestamps local`, extracted files now show exactly that time. Before, every date was read as standard time, so files dated in summer showed one hour later than stored.
+* **Inno Setup 6.6.0 development builds.** Some installers were built with a pre-release of Inno Setup 6.6.0 from late September to early October 2025. They carry the same data ID as the release but store their language entries in the older layout, and innoextract stopped with a stream error on them. They now unpack. Development builds from other weeks used other layouts again; those will be added when installers made with them turn up.
+* **Unit tests** for the setup header, language entries and local time conversion. Run them with `-DBUILD_TESTS=ON` and `make check`.
+* **Version and bug reports.** Releases carry an `-lc` suffix (`1.13.0-lc1`), and bug reports go to [this repository](https://github.com/luducat/luducat-innoextract/issues), not to upstream.
 
-## Contact
+The full list is in [CHANGELOG](CHANGELOG). Fixes that help every user are offered back to crazy-max/innoextract.
 
-[Website](https://constexpr.org/innoextract/)
+## Where it comes from
 
-Author: [Daniel Scharrer](https://constexpr.org/)
+* **[dscharrer/innoextract](https://github.com/dscharrer/innoextract)** by Daniel Scharrer, the original project, written from 2011 on. Its last release is 1.9 (2020), and its last change dates from February 2025.
+* **Johannes Schindelin** added support for Inno Setup 6.4.2 through 7.0.2 and the 64-bit data layouts (upstream pull request #210).
+* **[crazy-max/innoextract](https://github.com/crazy-max/innoextract)** by CrazyMax gathered that work and several open upstream pull requests into releases 1.10 to 1.13, with CI, release binaries and end-to-end tests up to Inno Setup 7.1.0. Contributions there came from Stephen Kitt, Patryk Miś, XIE Zhibang and others.
+* **luducat-innoextract** builds on crazy-max/innoextract 1.13.0.
 
-## Dependencies
+The git history keeps every author's commits.
+
+## Building
+
+### Dependencies
 
 * **[Boost](https://www.boost.org/) 1.37** or newer
 * **liblzma** from [xz-utils](https://tukaani.org/xz/) *(optional)*
@@ -29,7 +40,7 @@ To build innoextract you will also need **[CMake](https://cmake.org/) 2.8** and 
 
 See the Website for [operating system-specific instructions](https://constexpr.org/innoextract/install).
 
-## Compile and install
+### Compile and install
 
 To compile innoextract, run:
 
@@ -41,9 +52,9 @@ To install the binaries system-wide, run as root:
 
     # make install
 
-The default build settings are tuned for users - if you plan to make changes to Arx Libertatis you should append the `-DDEVELOPER=1` option to the `cmake` command to enable debug output and fast incremental builds.
+The default build settings are tuned for users - if you plan to make changes to innoextract you should append the `-DDEVELOPER=1` option to the `cmake` command to enable debug output and fast incremental builds.
 
-### Build options:
+### Build options
 
 | Option                    | Default   | Description                                                                                                                                                                                     |
 |---------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -110,21 +121,22 @@ Documentation is also available as a man page:
 ## Limitations
 
 * There is no support for extracting individual components and limited support for filtering by name.
-
 * Included scripts and checks are not executed.
-
 * The mapping from Inno Setup variables like the application directory to subdirectories is hard-coded.
-
 * Names for data slice/disk files in multi-file installers must follow the standard naming scheme.
 
-A perhaps more complete, but Windows-only, tool to extract Inno Setup files is [innounp](http://innounp.sourceforge.net/).
+A perhaps more complete, but Windows-only, tool to extract Inno Setup files is [innounp](https://github.com/jrathlev/InnoUnpacker-Windows-GUI).
 
-Extracting Windows installer executables created by programs other than Inno Setup is out of the scope of this project. Some of these can be unpacked by the following programs:
+Extracting Windows installer executables created by programs other than Inno Setup is out of the scope of this project. Some of these can be unpacked by [cabextract](https://cabextract.org.uk/) or [unshield](https://github.com/twogood/unshield).
 
-* [cabextract](https://cabextract.org.uk/)
+## License
 
-* [unshield](https://github.com/twogood/unshield)
+luducat-innoextract is available under the zlib license, like innoextract; see [LICENSE](LICENSE). It is an altered version of innoextract and not the original software. Code from other projects in the source tree, and the libraries it links against, are listed in [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt).
 
 ## Disclaimer
 
-This project is in no way associated with Inno Setup or [jrsoftware.org](https://jrsoftware.org/).
+This project is in no way associated with Inno Setup or [jrsoftware.org](https://jrsoftware.org/). It is not the original innoextract by Daniel Scharrer, and not crazy-max/innoextract; please report problems with this fork here.
+
+---
+luducat-innoextract has been written with the help of tooled assistance, but has been
+designed, reviewed and thoroughly tested and signed off by its developer.

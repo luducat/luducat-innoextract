@@ -1,0 +1,131 @@
+THIRD PARTY LICENSES
+====================
+
+luducat-innoextract is a fork of innoextract and is distributed under the
+zlib license (see LICENSE). This file lists code from other projects that is
+part of the source tree, and the libraries the program links against.
+
+================================================================================
+CODE IN THE SOURCE TREE
+================================================================================
+
+Crypto++ (Wei Dai and contributors)
+  https://github.com/weidai11/cryptopp
+  Used in: src/crypto/adler32.cpp, crc32.cpp, md5.cpp, sha1.cpp, sha256.cpp,
+           iteratedhash.hpp (taken from Crypto++ and modified)
+  The MD5 code goes back to Colin Plumb's public domain md5.c, the SHA-1 code
+  to Steve Reid's public domain sha1.c.
+  License: the individual files are in the public domain. From Crypto++'s
+  License.txt:
+
+Compilation Copyright (c) 1995-2019 by Wei Dai.  All rights reserved.
+This copyright applies only to this software distribution package
+as a compilation, and does not imply a copyright on any particular
+file in the package.
+
+All individual files in this compilation are placed in the public domain by
+Wei Dai and other contributors.
+
+SFML - Simple and Fast Multimedia Library (Laurent Gomila)
+  https://www.sfml-dev.org/
+  Used in: src/util/encoding.cpp (parts of the charset conversion)
+  License: zlib, the full notice is kept in the file header.
+
+Inno Setup (Jordan Russell, Martijn Laan)
+  https://jrsoftware.org/isinfo.php
+  Used in: src/crypto/pbkdf2.cpp (based on PBKDF2.pas),
+           src/crypto/xchacha20.cpp (based on ChaCha20.pas)
+  The setup data structures innoextract reads follow Inno Setup's own record
+  definitions (Projects/Src/Shared.Struct.pas in the Inno Setup source).
+  License:
+
+Inno Setup License
+==================
+
+Except where otherwise noted, all of the documentation and software included in the Inno
+Setup package is copyrighted by Jordan Russell.
+
+Copyright (C) 1997-2026 Jordan Russell. All rights reserved.
+Portions Copyright (C) 2000-2026 Martijn Laan. All rights reserved.
+
+This software is provided "as-is," without any express or implied warranty. In no event shall
+the author be held liable for any damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose, including commercial
+applications, and to alter and redistribute it, provided that the following conditions are met:
+
+1. All redistributions of source code files must retain all copyright notices that are currently
+   in place, and this list of conditions without modification.
+
+2. All redistributions in binary form must retain all occurrences of the above copyright notice
+   and web site addresses that are currently in place (for example, in the About boxes).
+
+3. The origin of this software must not be misrepresented; you must not claim that you wrote
+   the original software. If you use this software to distribute a product, an acknowledgment
+   in the product documentation would be appreciated but is not required.
+
+4. Modified versions in source or binary form must be plainly marked as such, and must not
+   be misrepresented as being the original software.
+
+
+Jordan Russell
+jr-2020 AT jrsoftware.org
+https://jrsoftware.org/
+
+chacha20-c (Ginurx)
+  https://github.com/Ginurx/chacha20-c
+  Used in: src/crypto/xchacha20.cpp (Inno Setup's ChaCha20.pas is based on it)
+  License:
+
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org>
+
+================================================================================
+LIBRARIES THE PROGRAM LINKS AGAINST
+================================================================================
+
+These are not part of the source tree. Static release builds include them in
+the binary, so their licenses apply to those builds.
+
+Boost (iostreams, filesystem, date_time, program_options)
+  https://www.boost.org/
+  License: Boost Software License 1.0
+
+liblzma from XZ Utils
+  https://tukaani.org/xz/
+  License: BSD Zero Clause License (0BSD) since XZ Utils 5.6.0, public domain
+  before that
+
+zlib (used through Boost.Iostreams)
+  https://zlib.net/
+  License: zlib
+
+bzip2 (used through Boost.Iostreams)
+  https://sourceware.org/bzip2/
+  License: bzip2 license (BSD-style)
+
+iconv (part of the C library, or GNU libiconv)
+  https://www.gnu.org/software/libiconv/
+  License: LGPL-2.1-or-later for GNU libiconv and glibc
