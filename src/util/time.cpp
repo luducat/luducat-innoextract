@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013-2019 Daniel Scharrer
+ * Copyright (C) 2026 luducat contributors
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author(s) be held liable for any damages
@@ -49,6 +50,7 @@
 #endif
 
 #include "util/log.hpp"
+#include "util/test.hpp"
 
 namespace util {
 
@@ -215,8 +217,8 @@ time to_local_time(time t) {
 	// Format time as UTC ...
 	std::tm datetime = format_time(t);
 	
-	// ... and interpret it as local time
-	datetime.tm_isdst = 0;
+	// ... and interpret it as local time, with the DST rule of that date
+	datetime.tm_isdst = -1;
 	#if defined(_WIN32)
 	return _mktime64(&datetime);
 	#else
@@ -333,5 +335,40 @@ bool set_file_time(const boost::filesystem::path & path, time sec, boost::uint32
 	#endif
 	
 }
+
+#if !defined(_WIN32)
+
+// Extracted files must show the stored wall clock time, in summer as in winter.
+INNOEXTRACT_TEST(time_local_dst,
+	
+	const char * saved = getenv("TZ");
+	std::string old = saved ? saved : "";
+	setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
+	tzset();
+	
+	std::tm summer = std::tm();
+	summer.tm_year = 2013 - 1900, summer.tm_mon = 4, summer.tm_mday = 22;
+	summer.tm_hour = 14, summer.tm_min = 59, summer.tm_sec = 40;
+	std::tm summer_utc = summer;
+	summer_utc.tm_hour = 12;
+	test("summer", to_local_time(parse_time(summer)) == parse_time(summer_utc));
+	
+	std::tm winter = std::tm();
+	winter.tm_year = 1991 - 1900, winter.tm_mon = 1, winter.tm_mday = 16;
+	winter.tm_hour = 14, winter.tm_min = 50, winter.tm_sec = 54;
+	std::tm winter_utc = winter;
+	winter_utc.tm_hour = 13;
+	test("winter", to_local_time(parse_time(winter)) == parse_time(winter_utc));
+	
+	if(saved) {
+		setenv("TZ", old.c_str(), 1);
+	} else {
+		unsetenv("TZ");
+	}
+	tzset();
+	
+)
+
+#endif
 
 } // namespace util
