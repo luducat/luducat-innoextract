@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011-2019 Daniel Scharrer
+ * Copyright (C) 2026 luducat contributors
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author(s) be held liable for any damages
@@ -21,6 +22,7 @@
 #include "setup/language.hpp"
 
 #include <algorithm>
+#include <sstream>
 
 #include "boost/range/begin.hpp"
 #include "boost/range/end.hpp"
@@ -28,6 +30,7 @@
 #include "setup/info.hpp"
 #include "setup/version.hpp"
 #include "util/load.hpp"
+#include "util/test.hpp"
 
 namespace setup {
 
@@ -139,14 +142,17 @@ void language_entry::load(std::istream & is, const info & i) {
 		util::binary_string::skip(is);
 	}
 	
+	// 6.6.0.1: a 6.6.0 development build with the pre-6.6.0 font fields (issrc Shared.Struct.pas at 506dda80b1).
+	bool old_fonts = i.version < INNO_VERSION(6, 6, 0) || i.version == INNO_VERSION_EXT(6, 6, 0, 1);
+	
 	is >> util::binary_string(dialog_font);
-	if(i.version < INNO_VERSION(6, 6, 0)) {
+	if(old_fonts) {
 		is >> util::binary_string(title_font);
 	} else {
 		title_font.clear();
 	}
 	is >> util::binary_string(welcome_font);
-	if(i.version < INNO_VERSION(6, 6, 0)) {
+	if(old_fonts) {
 		is >> util::binary_string(copyright_font);
 	} else {
 		copyright_font.clear();
@@ -202,7 +208,7 @@ void language_entry::load(std::istream & is, const info & i) {
 		dialog_font_standard_height = 0;
 	}
 	
-	if(i.version >= INNO_VERSION(6, 6, 0)) {
+	if(!old_fonts) {
 		// 6.6.0 replaced TitleFontSize and CopyrightFontSize with
 		// DialogFontBaseScaleHeight and DialogFontBaseScaleWidth (each a
 		// 32-bit Integer) sitting between DialogFontSize and
@@ -217,7 +223,7 @@ void language_entry::load(std::istream & is, const info & i) {
 		title_font_size = util::load<boost::uint32_t>(is);
 	}
 	welcome_font_size = util::load<boost::uint32_t>(is);
-	if(i.version < INNO_VERSION(6, 6, 0)) {
+	if(old_fonts) {
 		copyright_font_size = util::load<boost::uint32_t>(is);
 	} else {
 		copyright_font_size = 0;
@@ -243,5 +249,98 @@ void language_entry::decode(util::codepage_id cp) {
 	}
 	
 }
+
+#ifdef INNOEXTRACT_BUILD_TESTS
+
+namespace {
+
+void put_le(std::string & out, boost::uint32_t value, int bytes) {
+	for(int i = 0; i < bytes; i++) {
+		out.push_back(char((value >> (8 * i)) & 0xff));
+	}
+}
+
+void put_string(std::string & out, const std::string & data) {
+	put_le(out, boost::uint32_t(data.size()), 4);
+	out += data;
+}
+
+std::string utf16(const char * ascii) {
+	std::string out;
+	for(; *ascii; ascii++) {
+		out.push_back(*ascii);
+		out.push_back('\0');
+	}
+	return out;
+}
+
+// Development builds of 6.6.0 kept TitleFont and CopyrightFont but already used the 6.6.0 SetupID.
+std::string language_entry_660(bool dev_layout) {
+	std::string out;
+	put_string(out, utf16("english"));
+	put_string(out, utf16("English"));
+	put_string(out, utf16("Tahoma"));
+	if(dev_layout) {
+		put_string(out, utf16("Arial"));
+	}
+	put_string(out, utf16("Verdana"));
+	if(dev_layout) {
+		put_string(out, utf16("Courier"));
+	}
+	put_string(out, "messages");
+	put_string(out, std::string());
+	put_string(out, std::string());
+	put_string(out, std::string());
+	put_le(out, 1033, 2);
+	put_le(out, 8, 4);
+	if(dev_layout) {
+		put_le(out, 29, 4);
+	} else {
+		put_le(out, 15, 4);
+		put_le(out, 7, 4);
+	}
+	put_le(out, 12, 4);
+	if(dev_layout) {
+		put_le(out, 8, 4);
+	}
+	out.push_back('\0');
+	return out;
+}
+
+} // anonymous namespace
+
+INNOEXTRACT_TEST(language_entry_660_release,
+	
+	info setup;
+	setup.version = version(6, 6, 0, 0, version::Unicode, true);
+	std::istringstream is(language_entry_660(false));
+	language_entry entry;
+	entry.load(is, setup);
+	test("ids", entry.language_id == 1033 && entry.language_name == "English");
+	test("fonts", entry.dialog_font == utf16("Tahoma") && entry.welcome_font == utf16("Verdana")
+	              && entry.title_font.empty() && entry.copyright_font.empty());
+	test("sizes", entry.dialog_font_size == 8 && entry.dialog_font_base_scale_height == 15
+	              && entry.dialog_font_base_scale_width == 7 && entry.welcome_font_size == 12);
+	test("consumed", is.good() && is.peek() == std::char_traits<char>::eof());
+	
+)
+
+INNOEXTRACT_TEST(language_entry_660_dev,
+	
+	info setup;
+	setup.version = version(6, 6, 0, 1, version::Unicode, true);
+	std::istringstream is(language_entry_660(true));
+	language_entry entry;
+	entry.load(is, setup);
+	test("ids", entry.language_id == 1033 && entry.language_name == "English");
+	test("fonts", entry.dialog_font == utf16("Tahoma") && entry.title_font == utf16("Arial")
+	              && entry.welcome_font == utf16("Verdana") && entry.copyright_font == utf16("Courier"));
+	test("sizes", entry.dialog_font_size == 8 && entry.title_font_size == 29
+	              && entry.welcome_font_size == 12 && entry.copyright_font_size == 8);
+	test("consumed", is.good() && is.peek() == std::char_traits<char>::eof());
+	
+)
+
+#endif // INNOEXTRACT_BUILD_TESTS
 
 } // namespace setup

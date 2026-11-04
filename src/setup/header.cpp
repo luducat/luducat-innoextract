@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011-2020 Daniel Scharrer
+ * Copyright (C) 2026 luducat contributors
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author(s) be held liable for any damages
@@ -23,11 +24,14 @@
 #include <cstdio>
 #include <cstring>
 
+#include <sstream>
+
 #include <boost/static_assert.hpp>
 
 #include "setup/version.hpp"
 #include "util/load.hpp"
 #include "util/storedenum.hpp"
+#include "util/test.hpp"
 
 namespace setup {
 
@@ -872,7 +876,8 @@ header::flags header::load_flags(std::istream & is, const version & version) {
 		flagreader.add(AppNameHasConsts);
 		flagreader.add(UsePreviousPrivileges);
 	}
-	if(version >= INNO_VERSION(6, 0, 0) && version < INNO_VERSION(6, 6, 0)) {
+	bool dev_660 = (version == INNO_VERSION_EXT(6, 6, 0, 1));
+	if(version >= INNO_VERSION(6, 0, 0) && (version < INNO_VERSION(6, 6, 0) || dev_660)) {
 		// Inno Setup 6.6.0 dropped shWizardResizable from
 		// TSetupHeaderOption (the wizard is unconditionally resizable in
 		// the new modern style; the four flags appended at the same
@@ -887,9 +892,12 @@ header::flags header::load_flags(std::istream & is, const version & version) {
 		// shUninstallLogging, three of which carry over into 6.7.0.
 		flagreader.add(WizardModern);
 		flagreader.add(WizardBorderStyled);
+	}
+	if(version >= INNO_VERSION(6, 6, 0) && !dev_660) {
+		// The 6.6.0 development build ends the list after shWizardBorderStyled (issrc Shared.Struct.pas at 506dda80b1).
 		flagreader.add(WizardKeepAspectRatio);
 	}
-	if(version >= INNO_VERSION(6, 6, 0) && version < INNO_VERSION(6, 7, 0)) {
+	if(version >= INNO_VERSION(6, 6, 0) && version < INNO_VERSION(6, 7, 0) && !dev_660) {
 		// shWizardLightButtonsUnstyled exists only in the 6.6.x series;
 		// 6.7.0 dropped it again in favour of the new
 		// TSetupWizardLightControlStyling enum stored further up in
@@ -959,6 +967,41 @@ void header::decode(util::codepage_id codepage) {
 	util::to_utf8(changes_associations, codepage);
 	
 }
+
+#ifdef INNOEXTRACT_BUILD_TESTS
+
+namespace {
+
+// A 6.6.0 header with every field zero or empty, followed by six option bytes with bits 41 and 44 set.
+header load_660_header(const version & v, bool & consumed) {
+	std::string data(295, '\0');
+	const char option_bytes[6] = { 0, 0, 0, 0, 0, 0x12 };
+	data.append(option_bytes, sizeof(option_bytes));
+	std::istringstream is(data);
+	header h;
+	h.load(is, v);
+	consumed = is.good() && is.peek() == std::char_traits<char>::eof();
+	return h;
+}
+
+} // anonymous namespace
+
+INNOEXTRACT_TEST(header_flags_660,
+	
+	bool consumed = false;
+	header release = load_660_header(version(6, 6, 0, 0, version::Unicode, true), consumed);
+	test("release consumed", consumed);
+	test("release bit 41", (release.options & header::UninstallLogging) && !(release.options & header::WizardResizable));
+	test("release bit 44", (release.options & header::WizardKeepAspectRatio) && !(release.options & header::WizardBorderStyled));
+	
+	header dev = load_660_header(version(6, 6, 0, 1, version::Unicode, true), consumed);
+	test("dev consumed", consumed);
+	test("dev bit 41", (dev.options & header::WizardResizable) && !(dev.options & header::UninstallLogging));
+	test("dev bit 44", (dev.options & header::WizardBorderStyled) && !(dev.options & header::WizardKeepAspectRatio));
+	
+)
+
+#endif // INNOEXTRACT_BUILD_TESTS
 
 } // namespace setup
 

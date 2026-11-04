@@ -518,7 +518,9 @@ set(UNITTEST_SOURCES
 	
 	src/crypto/adler32.cpp
 	src/crypto/arc4.cpp if INNOEXTRACT_HAVE_DECRYPTION
+	src/crypto/checksum.cpp
 	src/crypto/crc32.cpp
+	src/crypto/hasher.cpp
 	src/crypto/md5.cpp
 	src/crypto/pbkdf2.cpp if INNOEXTRACT_HAVE_DECRYPTION
 	src/crypto/sha1.cpp
@@ -527,6 +529,43 @@ set(UNITTEST_SOURCES
 	
 	src/util/test.hpp
 	src/util/test.cpp
+	
+	src/loader/exereader.cpp
+	src/loader/offsets.cpp
+	src/setup/component.cpp
+	src/setup/data.cpp
+	src/setup/delete.cpp
+	src/setup/directory.cpp
+	src/setup/expression.cpp
+	src/setup/file.cpp
+	src/setup/filename.cpp
+	src/setup/header.cpp
+	src/setup/icon.cpp
+	src/setup/info.cpp
+	src/setup/ini.cpp
+	src/setup/issigkey.cpp
+	src/setup/item.cpp
+	src/setup/language.cpp
+	src/setup/message.cpp
+	src/setup/permission.cpp
+	src/setup/registry.cpp
+	src/setup/run.cpp
+	src/setup/task.cpp
+	src/setup/type.cpp
+	src/setup/version.cpp
+	src/setup/windows.cpp
+	src/stream/block.cpp
+	src/stream/chunk.cpp
+	src/stream/file.cpp
+	src/stream/lzma.cpp if INNOEXTRACT_HAVE_LZMA
+	src/stream/slice.cpp
+	src/util/console.cpp
+	src/util/encoding.cpp
+	src/util/load.cpp
+	src/util/log.cpp
+	src/util/process.cpp
+	src/util/time.cpp
+	src/util/windows.cpp if WIN32
 	
 )
 

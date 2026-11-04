@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011-2020 Daniel Scharrer
+ * Copyright (C) 2026 luducat contributors
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the author(s) be held liable for any damages
@@ -35,6 +36,7 @@
 
 #include "util/load.hpp"
 #include "util/log.hpp"
+#include "util/test.hpp"
 
 namespace setup {
 
@@ -192,6 +194,7 @@ const known_version versions[] = {
 	{ "Inno Setup Setup Data (6.5.0)",                      INNO_VERSION_EXT(6, 5,  0, 0), version::Unicode },
 	{ "Inno Setup Setup Data (6.5.2)",                      INNO_VERSION_EXT(6, 5,  2, 0), version::Unicode },
 	{ "Inno Setup Setup Data (6.6.0)",                      INNO_VERSION_EXT(6, 6,  0, 0), version::Unicode },
+	{ "" /* 6.6.0 development build */,  /* ambiguous */ INNO_VERSION_EXT(6, 6,  0, 1), version::Unicode },
 	{ "Inno Setup Setup Data (6.6.1)",                      INNO_VERSION_EXT(6, 6,  1, 0), version::Unicode },
 	{ "Inno Setup Setup Data (6.7.0)",                      INNO_VERSION_EXT(6, 7,  0, 0), version::Unicode },
 	{ "Inno Setup Setup Data (7.0.0.1)",   /* prerelease */ INNO_VERSION_EXT(7, 0,  0, 1), version::Unicode },
@@ -415,6 +418,11 @@ bool version::is_ambiguous() const {
 		return true;
 	}
 	
+	if(value == INNO_VERSION(6, 6, 0)) {
+		// might be either 6.6.0 or a 6.6.0 development build
+		return true;
+	}
+	
 	return false;
 }
 
@@ -441,5 +449,14 @@ version_constant version::next() {
 	
 	return 0;
 }
+
+// A 6.6.0 SetupID can mean the release or a development build with the older language entry.
+INNOEXTRACT_TEST(version_660_dev_build,
+	
+	version release(6, 6, 0, 0, version::Unicode, true);
+	test("ambiguous", release.is_ambiguous());
+	test("next", release.next() == INNO_VERSION_EXT(6, 6, 0, 1));
+	
+)
 
 } // namespace setup
